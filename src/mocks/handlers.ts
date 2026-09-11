@@ -7,9 +7,14 @@ export const handlers = [
   }),
 
   http.get("/api/games", () => {
-    return HttpResponse.json(mockGames.map((game) => ({
-      ...game,
-      progress: game.status === "PLAYING" ? 50 : 100,
-    })));
+    return HttpResponse.json(mockGames);
+  }),
+
+  http.get("/api/games/:gameId", ({ params }) => {
+    const game = mockGames.find((g) => g.id === params.gameId);
+    if (!game) {
+      return HttpResponse.json({ message: "Game not found" }, { status: 404 });
+    }
+    return HttpResponse.json({ ...game, objectives: [] });
   }),
 ];
