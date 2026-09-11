@@ -1,39 +1,17 @@
-import { useEffect, useState } from "react";
 import { useParams } from "react-router";
 import { getGame } from "../services/games";
-import { GameDetail } from "../types/game";
+import { useQuery } from "@tanstack/react-query";
 
 export default function GameDetailPage() {
   const { gameId } = useParams<{ gameId: string }>();
-  const [game, setGame] = useState<GameDetail | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    let ignore = false; // owned by this effect run only
-    setLoading(true);
-    setError(null);
+  const { data: game, isPending, isError, error } = useQuery({
+    queryKey: ["games", gameId],
+    queryFn: () => getGame(gameId!),
+  });
 
-    getGame(gameId!)
-      .then((g) => {
-        if (!ignore) setGame(g);
-      })
-      .catch((err) => {
-        if (!ignore) setError(err.message);
-      })
-      .finally(() => {
-        if (!ignore) setLoading(false);
-      });
-
-    // Runs before the next effect run (gameId changed) and on unmount.
-    return () => {
-      ignore = true;
-    };
-  }, [gameId]);
-
-  if (loading) return <p>Loading...</p>;
-  if (error) return <p>Error: {error}</p>;
-  if (!game) return <p>Game not found.</p>;
+  if (isPending) return <p>Loading...</p>;
+  if (isError) return <p>Error: {error.message}</p>;
 
   return (
     <div>
