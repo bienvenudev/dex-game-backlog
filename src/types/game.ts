@@ -7,6 +7,14 @@ export type GameStatus = 'UNPLAYED' | 'PLAYING' | 'FINISHED' | 'ABANDONED';
 export const PLATFORMS = ['STEAM', 'EPIC', 'GOG', 'XBOX', 'PLAYSTATION', 'OTHER'] as const;
 export const GAME_STATUSES = ['UNPLAYED', 'PLAYING', 'FINISHED', 'ABANDONED'] as const;
 
+// User-facing labels; the wire values stay upper-case.
+export const STATUS_LABELS: Record<GameStatus, string> = {
+  UNPLAYED: 'Unplayed',
+  PLAYING: 'Playing',
+  FINISHED: 'Finished',
+  ABANDONED: 'Abandoned',
+};
+
 // Computed by the service/backend, never by components.
 export interface Progress {
   completed: number;
@@ -32,6 +40,7 @@ interface GameBase {
   status: GameStatus;
   rating: number | null; // 1-10, only allowed when status !== 'UNPLAYED'
   notes: string | null;
+  coverUrl: string | null;
   startedAt: string | null;
   finishedAt: string | null;
   createdAt: string;
@@ -55,6 +64,7 @@ export interface GameInput {
   status: GameStatus;
   rating: number | null;
   notes: string | null;
+  coverUrl: string | null;
 }
 
 export const EMPTY_GAME_INPUT: GameInput = {
@@ -63,4 +73,5 @@ export const EMPTY_GAME_INPUT: GameInput = {
   status: "UNPLAYED",
   rating: null,
   notes: null,
+  coverUrl: null,
 };

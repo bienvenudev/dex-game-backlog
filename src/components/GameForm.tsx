@@ -124,6 +124,18 @@ export default function GameForm({
         </label>
       </div>
 
+      <div>
+        <label>
+          Cover image URL{" "}
+          <input
+            type="url"
+            value={values.coverUrl ?? ""}
+            onChange={(e) => setField("coverUrl", e.target.value || null)}
+            placeholder="https://..."
+          />
+        </label>
+      </div>
+
       {error && <p>Error: {error}</p>}
       <button type="submit" disabled={isPending}>
         {isPending ? "Saving..." : submitLabel}

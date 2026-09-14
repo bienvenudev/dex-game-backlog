@@ -31,6 +31,7 @@ export default function EditGamePage() {
     status: game.status,
     rating: game.rating,
     notes: game.notes,
+    coverUrl: game.coverUrl,
   };
   const outstanding = game.objectives.filter((o) => !o.completed).length;
 
