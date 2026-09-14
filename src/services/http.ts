@@ -21,25 +21,24 @@ async function readErrorMessage(response: Response): Promise<string> {
   return response.statusText || `HTTP ${response.status}`;
 }
 
+async function request<T>(method: string, url: string, body?: unknown): Promise<T> {
+  const response = await fetch(`${baseUrl}${url}`, {
+    method,
+    headers: body !== undefined ? { "Content-Type": "application/json" } : undefined,
+    body: body !== undefined ? JSON.stringify(body) : undefined,
+  });
+  if (!response.ok) {
+    throw new ApiError(response.status, await readErrorMessage(response));
+  }
+  // 204 No Content has no body to parse.
+  if (response.status === 204) return undefined as T;
+  return response.json();
+}
+
 export const http = {
-  get: async <T>(url: string): Promise<T> => {
-    const response = await fetch(`${baseUrl}${url}`);
-    if (!response.ok) {
-      throw new ApiError(response.status, await readErrorMessage(response));
-    }
-    return response.json();
-  },
-  patch: async <T>(url: string, body?: unknown): Promise<T> => {
-    const response = await fetch(`${baseUrl}${url}`, {
-      method: "PATCH",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: body ? JSON.stringify(body) : undefined,
-    });
-    if (!response.ok) {
-      throw new ApiError(response.status, await readErrorMessage(response));
-    }
-    return response.json();
-  },
+  get: <T>(url: string) => request<T>("GET", url),
+  post: <T>(url: string, body: unknown) => request<T>("POST", url, body),
+  put: <T>(url: string, body: unknown) => request<T>("PUT", url, body),
+  patch: <T>(url: string, body?: unknown) => request<T>("PATCH", url, body),
+  delete: (url: string) => request<void>("DELETE", url),
 };
