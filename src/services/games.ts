@@ -1,8 +1,17 @@
-import { GameDetail, GameSummary } from "../types/game";
+import { GameDetail, GameStatus, GameSummary } from "../types/game";
 import { http } from "./http";
 
-export function getGames(): Promise<GameSummary[]> {
-  return http.get<GameSummary[]>("/games");
+export interface GameFilters {
+  search?: string;
+  status?: GameStatus;
+}
+
+export function getGames(filters: GameFilters = {}): Promise<GameSummary[]> {
+  const params = new URLSearchParams();
+  if (filters.search) params.set("search", filters.search);
+  if (filters.status) params.set("status", filters.status);
+  const query = params.toString();
+  return http.get<GameSummary[]>(query ? `/games?${query}` : "/games");
 }
 
 export function getGame(gameId: string): Promise<GameDetail> {

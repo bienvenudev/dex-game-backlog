@@ -21,11 +21,19 @@ export const handlers = [
     await delay(1000);
   }),
 
-  http.get("/api/games", () => {
-    const summaries: GameSummary[] = mockGames.map((game) => ({
-      ...game,
-      progress: computeProgress(game.id),
-    }));
+  http.get("/api/games", ({ request }) => {
+    const params = new URL(request.url).searchParams;
+    const search = params.get("search")?.toLowerCase();
+    const status = params.get("status");
+
+    const summaries: GameSummary[] = mockGames
+      .filter((game) => !search || game.title.toLowerCase().includes(search))
+      .filter((game) => !status || game.status === status)
+      .map((game) => ({
+        ...game,
+        progress: computeProgress(game.id),
+      }));
+
     return HttpResponse.json(summaries);
   }),
 
