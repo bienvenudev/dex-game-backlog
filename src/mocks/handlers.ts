@@ -52,4 +52,27 @@ export const handlers = [
     };
     return HttpResponse.json(detail);
   }),
+  http.patch("/api/games/:gameId/objectives/:objectiveId/complete", ({ params }) => {
+    const objective = mockObjectives.find(
+      (o) => o.gameId === params.gameId && o.id === params.objectiveId
+    );
+    if (!objective) {
+      return HttpResponse.json({ message: "Objective not found" }, { status: 404 });
+    }
+    objective.completed = true;
+    objective.completedAt = new Date().toISOString();
+    return HttpResponse.json(objective);
+  }),
+
+  http.patch("/api/games/:gameId/objectives/:objectiveId/reopen", ({ params }) => {
+    const objective = mockObjectives.find(
+      (o) => o.gameId === params.gameId && o.id === params.objectiveId
+    );
+    if (!objective) {
+      return HttpResponse.json({ message: "Objective not found" }, { status: 404 });
+    }
+    objective.completed = false;
+    objective.completedAt = null;
+    return HttpResponse.json(objective);
+  }),
 ];

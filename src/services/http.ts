@@ -29,4 +29,17 @@ export const http = {
     }
     return response.json();
   },
+  patch: async <T>(url: string, body?: unknown): Promise<T> => {
+    const response = await fetch(`${baseUrl}${url}`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: body ? JSON.stringify(body) : undefined,
+    });
+    if (!response.ok) {
+      throw new ApiError(response.status, await readErrorMessage(response));
+    }
+    return response.json();
+  },
 };
