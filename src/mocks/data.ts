@@ -37,6 +37,18 @@ export const mockGames: Omit<GameSummary, "progress">[] = [
     createdAt: "2023-03-01T00:00:00Z",
     updatedAt: "2023-03-01T00:00:00Z",
   },
+  {
+    id: "4",
+    title: "Hollow Knight",
+    platform: "GOG",
+    status: "UNPLAYED",
+    rating: null,
+    notes: null,
+    startedAt: null,
+    finishedAt: null,
+    createdAt: "2023-04-01T00:00:00Z",
+    updatedAt: "2023-04-01T00:00:00Z",
+  },
 ];
 
 export const mockObjectives: Objective[] = [
