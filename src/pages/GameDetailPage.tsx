@@ -1,6 +1,7 @@
 import { useParams } from "react-router";
 import { getGame } from "../services/games";
 import { useQuery } from "@tanstack/react-query";
+import ProgressText from "../components/ProgressText";
 
 export default function GameDetailPage() {
   const { gameId } = useParams<{ gameId: string }>();
@@ -17,7 +18,7 @@ export default function GameDetailPage() {
     <div>
       <h1>{game.title}</h1>
       <p>
-        {game.platform} · {game.status}
+        {game.platform} · {game.status} · <ProgressText progress={game.progress} />
       </p>
     </div>
   );

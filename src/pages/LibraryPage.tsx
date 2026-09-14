@@ -1,6 +1,7 @@
 import { Link } from "react-router";
 import { getGames } from "../services/games";
 import { useQuery } from "@tanstack/react-query";
+import ProgressText from "../components/ProgressText";
 
 export default function LibraryPage() {
   const { data: games, isPending, isError, error } = useQuery({
@@ -18,7 +19,8 @@ export default function LibraryPage() {
       <ul>
         {games.map((game) => (
           <li key={game.id}>
-            <Link to={`/games/${game.id}`}>{game.title}</Link>
+            <Link to={`/games/${game.id}`}>{game.title}</Link> · {game.platform} ·{" "}
+            {game.status} · <ProgressText progress={game.progress} />
           </li>
         ))}
       </ul>

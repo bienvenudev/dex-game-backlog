@@ -1,4 +1,4 @@
-import { GameSummary } from "../types/game";
+import { GameSummary, Objective } from "../types/game";
 
 export const mockGames: Omit<GameSummary, "progress">[] = [
   {
@@ -25,4 +25,69 @@ export const mockGames: Omit<GameSummary, "progress">[] = [
     createdAt: "2023-02-01T00:00:00Z",
     updatedAt: "2023-02-15T00:00:00Z",
   },
+  {
+    id: "3",
+    title: "The Legend of Zelda: Breath of the Wild",
+    platform: "XBOX",
+    status: "ABANDONED",
+    rating: 10,
+    notes: "Can't wait to play this!",
+    startedAt: null,
+    finishedAt: null,
+    createdAt: "2023-03-01T00:00:00Z",
+    updatedAt: "2023-03-01T00:00:00Z",
+  },
 ];
+
+export const mockObjectives: Objective[] = [
+  {
+    id: "1",
+    gameId: "1",
+    label: "Complete the main story",
+    completed: true,
+    position: 1,
+    completedAt: "2023-01-15T00:00:00Z",
+    createdAt: "2023-01-01T00:00:00Z",
+    updatedAt: "2023-01-15T00:00:00Z",
+  },
+  {
+    id: "2",
+    gameId: "1",
+    label: "Finish all side quests",
+    completed: false,
+    position: 2,
+    completedAt: null,
+    createdAt: "2023-01-01T00:00:00Z",
+    updatedAt: "2023-01-01T00:00:00Z",
+  },
+  {
+    id: "3",
+    gameId: "1",
+    label: "Collect all Gwent cards",
+    completed: false,
+    position: 3,
+    completedAt: null,
+    createdAt: "2023-01-01T00:00:00Z",
+    updatedAt: "2023-01-01T00:00:00Z",
+  },
+  {
+    id: "4",
+    gameId: "2",
+    label: "Defeat Hades",
+    completed: true,
+    position: 1,
+    completedAt: "2023-02-10T00:00:00Z",
+    createdAt: "2023-02-01T00:00:00Z",
+    updatedAt: "2023-02-10T00:00:00Z",
+  },
+  {
+    id: "5",
+    gameId: "2",
+    label: "Unlock all weapons",
+    completed: true,
+    position: 2,
+    completedAt: "2023-02-12T00:00:00Z",
+    createdAt: "2023-02-01T00:00:00Z",
+    updatedAt: "2023-02-12T00:00:00Z",
+  },
+]; 
