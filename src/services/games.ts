@@ -25,3 +25,7 @@ export function createGame(input: GameInput): Promise<GameSummary> {
 export function updateGame(gameId: string, input: GameInput): Promise<GameSummary> {
   return http.put<GameSummary>(`/games/${gameId}`, input);
 }
+
+export function deleteGame(gameId: string): Promise<void> {
+  return http.delete(`/games/${gameId}`);
+}

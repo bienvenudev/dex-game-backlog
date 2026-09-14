@@ -114,6 +114,19 @@ export const handlers = [
     return HttpResponse.json(toSummary(game));
   }),
 
+  http.delete("/api/games/:gameId", ({ params }) => {
+    const index = mockGames.findIndex((g) => g.id === params.gameId);
+    if (index === -1) {
+      return HttpResponse.json({ message: "Game not found" }, { status: 404 });
+    }
+    mockGames.splice(index, 1);
+    // Cascade, as the backend's FK constraint will.
+    for (let i = mockObjectives.length - 1; i >= 0; i--) {
+      if (mockObjectives[i].gameId === params.gameId) mockObjectives.splice(i, 1);
+    }
+    return new HttpResponse(null, { status: 204 });
+  }),
+
   http.get("/api/games", ({ request }) => {
     const params = new URL(request.url).searchParams;
     const search = params.get("search")?.toLowerCase();

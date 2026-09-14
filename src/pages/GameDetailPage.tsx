@@ -1,6 +1,7 @@
-import { Link, useParams } from "react-router";
+import { useState } from "react";
+import { Link, useNavigate, useParams } from "react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { getGame } from "../services/games";
+import { deleteGame, getGame } from "../services/games";
 import {
   addObjective,
   completeObjective,
@@ -10,10 +11,13 @@ import {
 import { Objective } from "../types/game";
 import ProgressText from "../components/ProgressText";
 import AddObjectiveForm from "../components/AddObjectiveForm";
+import ConfirmDialog from "../components/ConfirmDialog";
 
 export default function GameDetailPage() {
   const { gameId } = useParams<{ gameId: string }>();
+  const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const [confirmingDelete, setConfirmingDelete] = useState(false);
 
   const invalidateGames = () => queryClient.invalidateQueries({ queryKey: ["games"] });
 
@@ -35,6 +39,16 @@ export default function GameDetailPage() {
     onSuccess: invalidateGames,
   });
 
+  const deleteMutation = useMutation({
+    mutationFn: () => deleteGame(gameId!),
+    onSuccess: async () => {
+      // Drop this detail from the cache so nothing refetches a game that no longer exists.
+      queryClient.removeQueries({ queryKey: ["games", gameId] });
+      await queryClient.invalidateQueries({ queryKey: ["games"] });
+      navigate("/");
+    },
+  });
+
   const { data: game, isPending, isError, error } = useQuery({
     queryKey: ["games", gameId],
     queryFn: () => getGame(gameId!),
@@ -52,8 +66,24 @@ export default function GameDetailPage() {
       <p>Rating: {game.rating ?? "—"}</p>
       {game.notes && <p>{game.notes}</p>}
       <p>
-        <Link to={`/games/${game.id}/edit`}>Edit</Link>
+        <Link to={`/games/${game.id}/edit`}>Edit</Link>{" "}
+        <button type="button" onClick={() => setConfirmingDelete(true)}>
+          Delete
+        </button>
       </p>
+
+      <ConfirmDialog
+        open={confirmingDelete}
+        title={`Delete ${game.title}?`}
+        message={`This will permanently delete the game and its ${game.objectives.length} objective${
+          game.objectives.length === 1 ? "" : "s"
+        }.`}
+        confirmLabel="Delete game"
+        isPending={deleteMutation.isPending}
+        error={deleteMutation.isError ? deleteMutation.error.message : null}
+        onConfirm={() => deleteMutation.mutate()}
+        onCancel={() => setConfirmingDelete(false)}
+      />
 
       <h2>Objectives</h2>
       {game.objectives.length === 0 && <p>No objectives yet.</p>}
