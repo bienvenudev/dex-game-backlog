@@ -48,3 +48,19 @@ export interface GameDetail extends GameBase {
   objectives: Objective[];
   progress: Progress;
 }
+
+export interface GameInput {
+  title: string;
+  platform: Platform;
+  status: GameStatus;
+  rating: number | null;
+  notes: string | null;
+}
+
+export const EMPTY_GAME_INPUT: GameInput = {
+  title: "",
+  platform: "STEAM",
+  status: "UNPLAYED",
+  rating: null,
+  notes: null,
+};

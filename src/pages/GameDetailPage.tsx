@@ -1,4 +1,4 @@
-import { useParams } from "react-router";
+import { Link, useParams } from "react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { getGame } from "../services/games";
 import {
@@ -48,6 +48,11 @@ export default function GameDetailPage() {
       <h1>{game.title}</h1>
       <p>
         {game.platform} · {game.status} · <ProgressText progress={game.progress} />
+      </p>
+      <p>Rating: {game.rating ?? "—"}</p>
+      {game.notes && <p>{game.notes}</p>}
+      <p>
+        <Link to={`/games/${game.id}/edit`}>Edit</Link>
       </p>
 
       <h2>Objectives</h2>

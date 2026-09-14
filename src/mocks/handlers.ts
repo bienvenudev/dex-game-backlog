@@ -1,6 +1,16 @@
 import { delay, http, HttpResponse } from "msw";
 import { mockGames, mockObjectives } from "./data";
-import { GameDetail, GameSummary, Objective, Progress } from "../types/game";
+import {
+  GAME_STATUSES,
+  GameDetail,
+  GameInput,
+  GameSummary,
+  Objective,
+  PLATFORMS,
+  Progress,
+} from "../types/game";
+
+type StoredGame = (typeof mockGames)[number];
 
 function computeProgress(gameId: string): Progress {
   const gameObjectives = mockObjectives.filter((o) => o.gameId === gameId);
@@ -16,9 +26,92 @@ function computeProgress(gameId: string): Progress {
   };
 }
 
+// Mirrors the backend's validation rules.
+function validateGameInput(input: GameInput): string | null {
+  if (!input.title?.trim()) return "Title is required";
+  if (!PLATFORMS.includes(input.platform)) return "Platform is invalid";
+  if (!GAME_STATUSES.includes(input.status)) return "Status is invalid";
+  if (input.rating !== null) {
+    if (input.status === "UNPLAYED") return "Rating is not allowed on an unplayed game";
+    if (!Number.isInteger(input.rating) || input.rating < 1 || input.rating > 10) {
+      return "Rating must be a whole number from 1 to 10";
+    }
+  }
+  return null;
+}
+
+function isDuplicate(input: GameInput, excludeGameId?: string): boolean {
+  return mockGames.some(
+    (g) =>
+      g.id !== excludeGameId &&
+      g.platform === input.platform &&
+      g.title.trim().toLowerCase() === input.title.trim().toLowerCase(),
+  );
+}
+
+function toSummary(game: StoredGame): GameSummary {
+  return { ...game, progress: computeProgress(game.id) };
+}
+
 export const handlers = [
   http.all("*", async () => {
     await delay(1000);
+  }),
+
+  http.post("/api/games", async ({ request }) => {
+    const input = (await request.json()) as GameInput;
+    const error = validateGameInput(input);
+    if (error) return HttpResponse.json({ message: error }, { status: 400 });
+    if (isDuplicate(input)) {
+      return HttpResponse.json(
+        { message: "You already have this title on this platform" },
+        { status: 409 },
+      );
+    }
+
+    const now = new Date().toISOString();
+    const game: StoredGame = {
+      id: crypto.randomUUID(),
+      title: input.title.trim(),
+      platform: input.platform,
+      status: input.status,
+      rating: input.rating,
+      notes: input.notes || null,
+      startedAt: input.status !== "UNPLAYED" ? now : null,
+      finishedAt: input.status === "FINISHED" ? now : null,
+      createdAt: now,
+      updatedAt: now,
+    };
+    mockGames.push(game);
+    return HttpResponse.json(toSummary(game), { status: 201 });
+  }),
+
+  http.put("/api/games/:gameId", async ({ params, request }) => {
+    const game = mockGames.find((g) => g.id === params.gameId);
+    if (!game) {
+      return HttpResponse.json({ message: "Game not found" }, { status: 404 });
+    }
+
+    const input = (await request.json()) as GameInput;
+    const error = validateGameInput(input);
+    if (error) return HttpResponse.json({ message: error }, { status: 400 });
+    if (isDuplicate(input, game.id)) {
+      return HttpResponse.json(
+        { message: "You already have this title on this platform" },
+        { status: 409 },
+      );
+    }
+
+    const now = new Date().toISOString();
+    game.title = input.title.trim();
+    game.platform = input.platform;
+    game.status = input.status;
+    game.rating = input.status === "UNPLAYED" ? null : input.rating;
+    game.notes = input.notes || null;
+    if (input.status !== "UNPLAYED" && !game.startedAt) game.startedAt = now;
+    if (input.status === "FINISHED") game.finishedAt = now;
+    game.updatedAt = now;
+    return HttpResponse.json(toSummary(game));
   }),
 
   http.get("/api/games", ({ request }) => {
