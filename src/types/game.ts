@@ -40,7 +40,8 @@ interface GameBase {
   status: GameStatus;
   rating: number | null; // 1-10, only allowed when status !== 'UNPLAYED'
   notes: string | null;
-  coverUrl: string | null;
+  coverUrl: string | null; // portrait art for cards
+  backgroundUrl: string | null; // wide art for the detail hero
   startedAt: string | null;
   finishedAt: string | null;
   createdAt: string;
@@ -65,6 +66,7 @@ export interface GameInput {
   rating: number | null;
   notes: string | null;
   coverUrl: string | null;
+  backgroundUrl: string | null;
 }
 
 export const EMPTY_GAME_INPUT: GameInput = {
@@ -74,4 +76,5 @@ export const EMPTY_GAME_INPUT: GameInput = {
   rating: null,
   notes: null,
   coverUrl: null,
+  backgroundUrl: null,
 };

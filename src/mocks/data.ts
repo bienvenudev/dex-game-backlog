@@ -4,6 +4,8 @@ import { GameSummary, Objective } from "../types/game";
 // training project, not for a shipped product.
 const steamCover = (appId: number) =>
   `https://cdn.cloudflare.steamstatic.com/steam/apps/${appId}/library_600x900.jpg`;
+const steamHero = (appId: number) =>
+  `https://cdn.cloudflare.steamstatic.com/steam/apps/${appId}/library_hero.jpg`;
 
 export const mockGames: Omit<GameSummary, "progress">[] = [
   {
@@ -14,6 +16,7 @@ export const mockGames: Omit<GameSummary, "progress">[] = [
     rating: 9,
     notes: "Great game, but a bit long.",
     coverUrl: steamCover(292030),
+    backgroundUrl: steamHero(292030),
     startedAt: "2023-01-01T00:00:00Z",
     finishedAt: null,
     createdAt: "2023-01-01T00:00:00Z",
@@ -27,6 +30,7 @@ export const mockGames: Omit<GameSummary, "progress">[] = [
     rating: 10,
     notes: "Amazing game, loved it!",
     coverUrl: steamCover(1145360),
+    backgroundUrl: steamHero(1145360),
     startedAt: "2023-02-01T00:00:00Z",
     finishedAt: "2023-02-15T00:00:00Z",
     createdAt: "2023-02-01T00:00:00Z",
@@ -40,6 +44,7 @@ export const mockGames: Omit<GameSummary, "progress">[] = [
     rating: 7,
     notes: "Got lost in the open world and never came back.",
     coverUrl: null, // exercises the no-cover fallback
+    backgroundUrl: null,
     startedAt: "2023-03-01T00:00:00Z",
     finishedAt: null,
     createdAt: "2023-03-01T00:00:00Z",
@@ -53,6 +58,7 @@ export const mockGames: Omit<GameSummary, "progress">[] = [
     rating: null,
     notes: null,
     coverUrl: steamCover(367520),
+    backgroundUrl: steamHero(367520),
     startedAt: null,
     finishedAt: null,
     createdAt: "2023-04-01T00:00:00Z",
@@ -66,6 +72,7 @@ export const mockGames: Omit<GameSummary, "progress">[] = [
     rating: 9,
     notes: null,
     coverUrl: steamCover(1174180),
+    backgroundUrl: steamHero(1174180),
     startedAt: "2024-01-10T00:00:00Z",
     finishedAt: null,
     createdAt: "2024-01-10T00:00:00Z",
@@ -79,6 +86,7 @@ export const mockGames: Omit<GameSummary, "progress">[] = [
     rating: 10,
     notes: "Perfect length.",
     coverUrl: steamCover(620),
+    backgroundUrl: steamHero(620),
     startedAt: "2022-06-01T00:00:00Z",
     finishedAt: "2022-06-05T00:00:00Z",
     createdAt: "2022-06-01T00:00:00Z",
@@ -92,6 +100,7 @@ export const mockGames: Omit<GameSummary, "progress">[] = [
     rating: 8,
     notes: "Stuck on Malenia.",
     coverUrl: steamCover(1245620),
+    backgroundUrl: steamHero(1245620),
     startedAt: "2024-03-01T00:00:00Z",
     finishedAt: null,
     createdAt: "2024-03-01T00:00:00Z",
@@ -105,6 +114,7 @@ export const mockGames: Omit<GameSummary, "progress">[] = [
     rating: null,
     notes: null,
     coverUrl: steamCover(504230),
+    backgroundUrl: steamHero(504230),
     startedAt: null,
     finishedAt: null,
     createdAt: "2024-04-01T00:00:00Z",
@@ -118,6 +128,7 @@ export const mockGames: Omit<GameSummary, "progress">[] = [
     rating: 8,
     notes: null,
     coverUrl: steamCover(413150),
+    backgroundUrl: steamHero(413150),
     startedAt: "2024-02-01T00:00:00Z",
     finishedAt: null,
     createdAt: "2024-02-01T00:00:00Z",
@@ -131,6 +142,7 @@ export const mockGames: Omit<GameSummary, "progress">[] = [
     rating: 6,
     notes: "Too much reading for my mood at the time.",
     coverUrl: steamCover(632470),
+    backgroundUrl: steamHero(632470),
     startedAt: "2023-09-01T00:00:00Z",
     finishedAt: null,
     createdAt: "2023-09-01T00:00:00Z",
@@ -144,6 +156,7 @@ export const mockGames: Omit<GameSummary, "progress">[] = [
     rating: null,
     notes: "Waiting for a long weekend.",
     coverUrl: steamCover(1086940),
+    backgroundUrl: steamHero(1086940),
     startedAt: null,
     finishedAt: null,
     createdAt: "2024-07-01T00:00:00Z",
@@ -157,6 +170,7 @@ export const mockGames: Omit<GameSummary, "progress">[] = [
     rating: 9,
     notes: null,
     coverUrl: steamCover(814380),
+    backgroundUrl: steamHero(814380),
     startedAt: "2023-05-01T00:00:00Z",
     finishedAt: "2023-06-15T00:00:00Z",
     createdAt: "2023-05-01T00:00:00Z",

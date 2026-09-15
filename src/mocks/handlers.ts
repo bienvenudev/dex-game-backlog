@@ -78,6 +78,7 @@ export const handlers = [
       rating: input.rating,
       notes: input.notes || null,
       coverUrl: input.coverUrl || null,
+      backgroundUrl: input.backgroundUrl || null,
       startedAt: input.status !== "UNPLAYED" ? now : null,
       finishedAt: input.status === "FINISHED" ? now : null,
       createdAt: now,
@@ -110,6 +111,7 @@ export const handlers = [
     game.rating = input.status === "UNPLAYED" ? null : input.rating;
     game.notes = input.notes || null;
     game.coverUrl = input.coverUrl || null;
+    game.backgroundUrl = input.backgroundUrl || null;
     if (input.status !== "UNPLAYED" && !game.startedAt) game.startedAt = now;
     if (input.status === "FINISHED") game.finishedAt = now;
     game.updatedAt = now;
