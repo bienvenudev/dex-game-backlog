@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <!-- Source for the app icon. Regenerate platform icons with: pnpm tauri icon docs/icon/dex-icon.png -->
+  <rect width="1024" height="1024" rx="224" fill="#0a0a0a"/>
+  <rect x="224" y="224" width="576" height="576" rx="128" fill="none" stroke="#f2b807" stroke-width="72"/>
+  <path d="M384 528l96 96 160-192" fill="none" stroke="#f2b807" stroke-width="72" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>
