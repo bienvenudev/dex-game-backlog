@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useId, useRef } from "react";
 
 interface Props {
   open: boolean;
@@ -23,6 +23,8 @@ export default function ConfirmDialog({
   onCancel,
 }: Props) {
   const ref = useRef<HTMLDialogElement>(null);
+  const titleId = useId();
+  const messageId = useId();
 
   // <dialog> is imperative (showModal/close); this effect syncs it with the `open` prop.
   useEffect(() => {
@@ -34,16 +36,42 @@ export default function ConfirmDialog({
 
   return (
     // onClose also fires on Escape, so the parent's state stays in sync.
-    <dialog ref={ref} onClose={onCancel}>
-      <h2>{title}</h2>
-      <p>{message}</p>
-      {error && <p>Error: {error}</p>}
-      <button type="button" onClick={onCancel} disabled={isPending}>
-        Cancel
-      </button>{" "}
-      <button type="button" onClick={onConfirm} disabled={isPending}>
-        {isPending ? "Deleting..." : confirmLabel}
-      </button>
+    <dialog
+      ref={ref}
+      onClose={onCancel}
+      aria-labelledby={titleId}
+      aria-describedby={messageId}
+      className="m-auto w-full max-w-md rounded-md border border-line bg-panel p-6 text-ink shadow-2xl backdrop:bg-canvas/80 backdrop:backdrop-blur-sm"
+    >
+      <h2 id={titleId} className="text-lg font-bold">
+        {title}
+      </h2>
+      <p id={messageId} className="mt-2 text-sm text-muted">
+        {message}
+      </p>
+      {error && (
+        <p role="alert" className="mt-3 text-sm text-rose-400">
+          {error}
+        </p>
+      )}
+      <div className="mt-6 flex justify-end gap-2">
+        <button
+          type="button"
+          onClick={onCancel}
+          disabled={isPending}
+          className="rounded-md border border-line px-4 py-2 text-sm font-medium hover:border-ink transition-colors disabled:opacity-50"
+        >
+          Cancel
+        </button>
+        <button
+          type="button"
+          onClick={onConfirm}
+          disabled={isPending}
+          className="rounded-md bg-rose-500 px-4 py-2 text-sm font-semibold text-canvas hover:bg-rose-400 transition-colors disabled:opacity-50"
+        >
+          {isPending ? "Deleting…" : confirmLabel}
+        </button>
+      </div>
     </dialog>
   );
 }

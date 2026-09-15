@@ -18,7 +18,7 @@ export default function GameCard({ game }: { game: GameSummary }) {
             className="h-full w-full object-cover"
           />
         ) : (
-          <div className="flex h-full items-end bg-gradient-to-t from-panel-raised to-panel p-3">
+          <div className="flex h-full items-end bg-linear-to-t from-panel-raised to-panel p-3">
             <span className="text-lg font-bold leading-tight text-muted">{game.title}</span>
           </div>
         )}
