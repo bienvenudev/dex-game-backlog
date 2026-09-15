@@ -1,4 +1,4 @@
-import { useNavigate } from "react-router";
+import { Link, useNavigate } from "react-router";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { createGame } from "../services/games";
 import { EMPTY_GAME_INPUT } from "../types/game";
@@ -17,8 +17,11 @@ export default function AddGamePage() {
   });
 
   return (
-    <div>
-      <h1>Add Game</h1>
+    <div className="mx-auto max-w-3xl">
+      <Link to="/" className="text-sm text-muted hover:text-ink">
+        ← Library
+      </Link>
+      <h1 className="mt-2 mb-8 text-3xl font-bold tracking-tight">Add a game</h1>
       <GameForm
         initialValues={EMPTY_GAME_INPUT}
         onSubmit={(values) => mutation.mutate(values)}
