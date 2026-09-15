@@ -1,8 +1,8 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "game-backlog",
+  "productName": "Dex",
   "version": "0.1.0",
-  "identifier": "com.bienvenu.game-backlog",
+  "identifier": "com.bienvenu.dex",
   "build": {
     "beforeDevCommand": "pnpm dev",
     "devUrl": "http://localhost:1420",
@@ -12,7 +12,7 @@
   "app": {
     "windows": [
       {
-        "title": "game-backlog",
+        "title": "Dex",
         "width": 800,
         "height": 600
       }
