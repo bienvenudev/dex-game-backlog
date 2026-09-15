@@ -82,14 +82,14 @@ export default function GameDetailPage() {
                 to={`/games/${game.id}/edit`}
                 className="rounded-md border border-line bg-panel py-2 text-center text-sm font-medium hover:border-gold hover:text-gold transition-colors"
               >
-                Edit
+                Edit<span className="sr-only"> {game.title}</span>
               </Link>
               <button
                 type="button"
                 onClick={() => setConfirmingDelete(true)}
-                className="rounded-md border border-line bg-panel py-2 text-sm font-medium text-muted hover:border-rose-400 hover:text-rose-400 transition-colors"
+                className="rounded-md border border-rose-500/40 bg-panel py-2 text-sm font-medium text-rose-400 hover:border-rose-400 hover:bg-rose-500/10 transition-colors"
               >
-                Delete
+                Delete<span className="sr-only"> {game.title}</span>
               </button>
             </div>
           </aside>
@@ -110,7 +110,7 @@ export default function GameDetailPage() {
               <p className="text-sm text-muted">
                 No notes yet.{" "}
                 <Link to={`/games/${game.id}/edit`} className="text-gold hover:underline">
-                  Add some
+                  Add notes
                 </Link>
               </p>
             )}
@@ -277,20 +277,19 @@ function ObjectiveRow({
 }) {
   return (
     <li className="group flex items-center gap-3 py-3">
-      <input
-        id={`objective-${objective.id}`}
-        type="checkbox"
-        checked={objective.completed}
-        disabled={busy}
-        onChange={onToggle}
-        className="h-4 w-4 shrink-0 accent-gold"
-      />
+      {/* Input nested in the label: implicit association, no ids to keep in sync. */}
       <label
-        htmlFor={`objective-${objective.id}`}
-        className={`flex-1 cursor-pointer text-base ${
+        className={`flex flex-1 cursor-pointer items-center gap-3 text-base ${
           objective.completed ? "text-ink/70 line-through decoration-muted/60" : ""
         }`}
       >
+        <input
+          type="checkbox"
+          checked={objective.completed}
+          disabled={busy}
+          onChange={onToggle}
+          className="h-4 w-4 shrink-0 accent-gold"
+        />
         {objective.label}
       </label>
       {objective.completedAt && (
