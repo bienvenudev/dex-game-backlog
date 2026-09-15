@@ -39,6 +39,8 @@ pnpm tauri dev
 
 The app opens in a native window. Vite also serves it at <http://localhost:1420>, which is handy for browser devtools and the address bar.
 
+The project uses pnpm, but npm works too: `npm install` then `npm run tauri dev`.
+
 All data is mocked in the browser with [Mock Service Worker](https://mswjs.io/). Every request goes through a real `fetch` and is intercepted by a service worker that simulates the backend, including a short artificial delay and the spec's validation rules (duplicate titles, invalid ratings, 404s). Data lives in memory and resets on reload.
 
 > **Linux + VS Code snap:** the snap injects GTK paths that break Tauri's window (`symbol lookup error ... GLIBC_PRIVATE`). Run `pnpm tauri dev` from a regular terminal, or clear `GTK_PATH`, `GTK_EXE_PREFIX`, `GIO_MODULE_DIR`, `GSETTINGS_SCHEMA_DIR` and `LOCPATH` in VS Code's `terminal.integrated.env.linux`.
