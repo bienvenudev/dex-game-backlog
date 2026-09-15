@@ -6,11 +6,7 @@ export default function AppLayout() {
       <header className="sticky top-0 z-10 border-b border-line bg-canvas/95 backdrop-blur">
         <div className="mx-auto flex h-16 max-w-7xl items-center gap-8 px-6">
           <Link to="/" className="flex items-center gap-2 text-xl font-bold tracking-tight">
-            <span aria-hidden className="flex text-gold">
-              <TriangleIcon />
-              <TriangleIcon />
-              <TriangleIcon />
-            </span>
+            <LogoMark />
             Dex
           </Link>
 
@@ -42,10 +38,23 @@ export default function AppLayout() {
   );
 }
 
-function TriangleIcon() {
+// A ticked box: the app is a backlog of checklists.
+function LogoMark() {
   return (
-    <svg width="14" height="16" viewBox="0 0 14 16" fill="currentColor" className="-mr-1">
-      <path d="M1 1l12 7-12 7z" />
+    <svg
+      aria-hidden
+      width="24"
+      height="24"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className="text-gold"
+    >
+      <rect x="3" y="3" width="18" height="18" rx="4" />
+      <path d="m8 12 3 3 5-6" />
     </svg>
   );
 }
