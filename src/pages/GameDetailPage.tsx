@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link, useNavigate, useParams } from "react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { deleteGame, getGame } from "../services/games";
+import GameLoadError from "../components/GameLoadError";
 import {
   addObjective,
   completeObjective,
@@ -56,16 +57,7 @@ export default function GameDetailPage() {
   });
 
   if (isPending) return <DetailSkeleton />;
-  if (isError) {
-    return (
-      <Notice title="Couldn't load this game">
-        {error.message}{" "}
-        <Link to="/" className="text-gold hover:underline">
-          Back to library
-        </Link>
-      </Notice>
-    );
-  }
+  if (isError) return <GameLoadError error={error} />;
 
   const objectiveCount = game.objectives.length;
 
@@ -326,14 +318,6 @@ function DetailSkeleton() {
   );
 }
 
-function Notice({ title, children }: { title: string; children: React.ReactNode }) {
-  return (
-    <div className="rounded-md border border-line bg-panel px-6 py-10 text-center">
-      <p className="font-semibold">{title}</p>
-      <p className="mt-1 text-sm text-muted">{children}</p>
-    </div>
-  );
-}
 
 function formatDate(iso: string | null): string | null {
   if (!iso) return null;
