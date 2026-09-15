@@ -25,36 +25,43 @@ export default function LibraryPage() {
   return (
     <div className="space-y-8">
       <div className="flex flex-wrap items-center justify-between gap-4">
-        <div className="flex rounded-md border border-line bg-panel p-1 text-sm font-medium gap-2 flex-wrap">
-          <FilterPill active={status === ""} onClick={() => setStatus("")}>
+        {/* A radio group: one Tab stop, arrow keys move between options, "2 of 5" is announced. */}
+        <fieldset className="flex flex-wrap gap-2 rounded-md border border-line bg-panel p-1 text-sm font-medium">
+          <legend className="sr-only">Filter by status</legend>
+          <FilterPill value="" current={status} onChange={setStatus}>
             All
           </FilterPill>
           {GAME_STATUSES.map((s) => (
-            <FilterPill key={s} active={status === s} onClick={() => setStatus(s)}>
+            <FilterPill key={s} value={s} current={status} onChange={setStatus}>
               {STATUS_LABELS[s]}
             </FilterPill>
           ))}
-        </div>
+        </fieldset>
 
-        <label className="relative block w-72">
-          <span className="sr-only">Search by title</span>
-          <SearchIcon />
-          <input
-            type="search"
-            placeholder="Find a game"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="w-full rounded-md border border-line bg-panel py-2 pl-9 pr-3 text-sm placeholder:text-muted focus:border-gold focus:outline-none"
-          />
-        </label>
+        {/* role="search" makes this a landmark screen readers can jump to. */}
+        <div role="search" className="relative w-72">
+          <label>
+            <span className="sr-only">Search by title</span>
+            <SearchIcon />
+            <input
+              type="search"
+              placeholder="Find a game"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="w-full rounded-md border border-line bg-panel py-2 pl-9 pr-3 text-sm placeholder:text-muted focus:border-gold focus:outline-none"
+            />
+          </label>
+        </div>
       </div>
 
       <section>
         <h1 className="mb-6 text-2xl font-bold tracking-tight">
-          Your library
-          {games && !isPending && (
-            <span className="ml-3 text-base font-normal text-muted">{games.length}</span>
-          )}
+          Your library{" "}
+          {/* Live region: announces the new count after a filter change, since the grid itself
+              updates silently. Always mounted so screen readers pick up the change. */}
+          <span aria-live="polite" className="ml-2 text-base font-normal text-muted">
+            {games && !isPending && !isPlaceholderData && formatCount(games.length)}
+          </span>
         </h1>
 
         {isPending ? (
@@ -93,6 +100,11 @@ export default function LibraryPage() {
   );
 }
 
+function formatCount(n: number): string {
+  if (n === 0) return "No games";
+  return n === 1 ? "1 game" : `${n} games`;
+}
+
 function CardGrid({ children }: { children: React.ReactNode }) {
   return (
     <div className="grid grid-cols-[repeat(auto-fill,minmax(160px,1fr))] gap-x-6 gap-y-8">
@@ -102,24 +114,30 @@ function CardGrid({ children }: { children: React.ReactNode }) {
 }
 
 function FilterPill({
-  active,
-  onClick,
+  value,
+  current,
+  onChange,
   children,
 }: {
-  active: boolean;
-  onClick: () => void;
+  value: StatusFilter;
+  current: StatusFilter;
+  onChange: (value: StatusFilter) => void;
   children: React.ReactNode;
 }) {
+  // The radio is visually hidden but still focusable; the label is the pill and styles itself
+  // from the input's state via the `has-*` variants.
   return (
-    <button
-      type="button"
-      onClick={onClick}
-      aria-pressed={active}
-      className={`rounded px-3 py-1.5 transition-colors ${active ? "bg-panel-raised text-ink" : "text-muted hover:text-ink"
-        }`}
-    >
+    <label className="cursor-pointer rounded px-3 py-1.5 text-muted transition-colors hover:text-ink has-checked:bg-panel-raised has-checked:text-ink has-focus-visible:outline-2 has-focus-visible:outline-offset-2 has-focus-visible:outline-gold">
+      <input
+        type="radio"
+        name="status"
+        value={value}
+        checked={current === value}
+        onChange={() => onChange(value)}
+        className="sr-only"
+      />
       {children}
-    </button>
+    </label>
   );
 }
 
