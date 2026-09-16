@@ -1,4 +1,4 @@
-const baseUrl = import.meta.env.VITE_API_BASE_URL;
+const baseUrl: string = import.meta.env.VITE_API_BASE_URL ?? "/api";
 
 // Carries the HTTP status so callers can tell a 409 from a 500.
 export class ApiError extends Error {

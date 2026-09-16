@@ -154,7 +154,7 @@ Silktide's simulator reported "No accessible text" and "Checked" on a labelled, 
 
 ### pnpm and Tauri inside the VS Code snap
 
-The VS Code snap remaps `HOME` and injects GTK paths into its terminals. Two symptoms: pnpm's `ERR_PNPM_UNEXPECTED_STORE` (store path computed from the fake home), and Tauri's window failing with `symbol lookup error … GLIBC_PRIVATE` (GTK modules from the snap's old glibc loaded into a binary built against the system's). Fixes: run from a normal terminal, set `pnpm config set store-dir` globally, and clear `GTK_PATH`, `GTK_EXE_PREFIX`, `GIO_MODULE_DIR`, `GSETTINGS_SCHEMA_DIR`, `LOCPATH` in `terminal.integrated.env.linux`. Or install VS Code from the `.deb`.
+(The project later moved to npm, which removed the first symptom; the GTK one still applies.) The VS Code snap remaps `HOME` and injects GTK paths into its terminals. Two symptoms: pnpm's `ERR_PNPM_UNEXPECTED_STORE` (store path computed from the fake home), and Tauri's window failing with `symbol lookup error … GLIBC_PRIVATE` (GTK modules from the snap's old glibc loaded into a binary built against the system's). Fixes: run from a normal terminal, set `pnpm config set store-dir` globally, and clear `GTK_PATH`, `GTK_EXE_PREFIX`, `GIO_MODULE_DIR`, `GSETTINGS_SCHEMA_DIR`, `LOCPATH` in `terminal.integrated.env.linux`. Or install VS Code from the `.deb`.
 
 ### React Refresh and exported constants
 

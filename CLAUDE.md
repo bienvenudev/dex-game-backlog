@@ -1,6 +1,6 @@
 # Dex — game backlog tracker
 
-Frontend capstone: React 19 + TypeScript + Vite + Tauri 2, pnpm. A later C# (ASP.NET Core) backend capstone will implement the API the mocks stand in for.
+Frontend capstone: React 19 + TypeScript + Vite + Tauri 2, npm. A later C# (ASP.NET Core) backend capstone will implement the API the mocks stand in for.
 
 ## How to work with me on this project
 
@@ -16,9 +16,9 @@ This is a training project. I need to understand everything I ship.
 
 ## Commands
 
-- `pnpm tauri dev` — run the app (also serves at http://localhost:1420 in a browser, useful for the address bar and devtools)
-- `pnpm tsc --noEmit` — type-check
-- `pnpm lint` — ESLint
+- `npm run tauri dev` — run the app (also serves at http://localhost:1420 in a browser, useful for the address bar and devtools)
+- `npm run typecheck` — type-check
+- `npm run lint` — ESLint
 
 ## Architecture (see docs/decisions.md for the why, docs/learning-notes.md for the concepts)
 

@@ -24,7 +24,7 @@ Built with React and TypeScript, packaged as a desktop application with Tauri 2.
 
 ### Prerequisites
 
-- [Node.js](https://nodejs.org/) 20 or later and [pnpm](https://pnpm.io/)
+- [Node.js](https://nodejs.org/) 20 or later (npm is included)
 - [Rust](https://www.rust-lang.org/tools/install) and the [Tauri 2 system dependencies](https://v2.tauri.app/start/prerequisites/) for your OS
 
 ### Run in development
@@ -32,28 +32,31 @@ Built with React and TypeScript, packaged as a desktop application with Tauri 2.
 ```bash
 git clone https://github.com/bienvenudev/dex-game-backlog.git
 cd dex-game-backlog
-pnpm install
-cp .env.example .env
-pnpm tauri dev
+npm install
+npm run tauri dev
 ```
 
 The app opens in a native window. Vite also serves it at <http://localhost:1420>, which is handy for browser devtools and the address bar.
 
-The project uses pnpm, but npm works too: `npm install` then `npm run tauri dev`.
+No `.env` is needed for development: the API base URL defaults to `/api`, which is what the mocks expect. Copy `.env.example` to `.env` only to point at a real backend.
 
 All data is mocked in the browser with [Mock Service Worker](https://mswjs.io/). Every request goes through a real `fetch` and is intercepted by a service worker that simulates the backend, including a short artificial delay and the spec's validation rules (duplicate titles, invalid ratings, 404s). Data lives in memory and resets on reload.
 
-> **Linux + VS Code snap:** the snap injects GTK paths that break Tauri's window (`symbol lookup error ... GLIBC_PRIVATE`). Run `pnpm tauri dev` from a regular terminal, or clear `GTK_PATH`, `GTK_EXE_PREFIX`, `GIO_MODULE_DIR`, `GSETTINGS_SCHEMA_DIR` and `LOCPATH` in VS Code's `terminal.integrated.env.linux`.
+> **Linux + VS Code snap:** the snap injects GTK paths that break Tauri's window (`symbol lookup error ... GLIBC_PRIVATE`). Run `npm run tauri dev` from a regular terminal, or clear `GTK_PATH`, `GTK_EXE_PREFIX`, `GIO_MODULE_DIR`, `GSETTINGS_SCHEMA_DIR` and `LOCPATH` in VS Code's `terminal.integrated.env.linux`.
+
+### Troubleshooting
+
+- **"Couldn't load your library: Unexpected token '<'"**: a request reached Vite instead of the mock service worker, so it got `index.html` back. Usually `VITE_API_BASE_URL` is set to something the mocks don't serve. Remove it or set it to `/api`.
 
 ### Other commands
 
 | Command | What it does |
 | --- | --- |
-| `pnpm dev` | Vite dev server only, no native window |
-| `pnpm typecheck` | `tsc --noEmit` |
-| `pnpm lint` | ESLint (TypeScript, React hooks, TanStack Query rules) |
-| `pnpm build` | Type-check and build the frontend to `dist/` |
-| `pnpm tauri build` | Produce a native installer for the current OS |
+| `npm run dev` | Vite dev server only, no native window |
+| `npm run typecheck` | `tsc --noEmit` |
+| `npm run lint` | ESLint (TypeScript, React hooks, TanStack Query rules) |
+| `npm run build` | Type-check and build the frontend to `dist/` |
+| `npm run tauri build` | Produce a native installer for the current OS |
 
 ### Configuration
 

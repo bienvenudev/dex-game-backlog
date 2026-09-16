@@ -191,6 +191,10 @@ Left as-is because the fix adds more code than the capstone justifies. Each name
 
 The React Refresh rule (`only-export-components`) caught constants exported from component files twice; those constants now live in `types/game.ts`.
 
+### npm over pnpm
+
+Development started on pnpm. A fresh Windows clone with only npm failed on `beforeDevCommand: "pnpm dev"`, and a missing `.env` produced a cryptic JSON parse error. Two fixes: the project moved to npm, since every reviewer already has it and speed on one developer's machine matters less than zero-friction cloning; and the API base URL defaults to `/api` in code. Rule: a setup step a human can skip will be skipped; defaults live in code, docs describe the exception.
+
 ### Conventional commits, one concern per commit
 
 `type: imperative verb`, lowercase first word, proper nouns keep their casing, under about 55 characters. Contract changes (new fields) are committed separately from the UI that uses them.
