@@ -1,4 +1,4 @@
-import { clearSession, getSession } from "./session";
+import { getSession, SESSION_EXPIRED_EVENT } from "./session";
 
 const baseUrl: string = import.meta.env.VITE_API_BASE_URL ?? "/api";
 
@@ -34,11 +34,11 @@ async function request<T>(method: string, url: string, body?: unknown): Promise<
     body: body !== undefined ? JSON.stringify(body) : undefined,
   });
   if (!response.ok) {
-    // 401 while holding a token: the session is dead, so drop it and go to login.
-    // 401 without one is a failed login attempt and is reported to the form as normal.
+    // 401 while holding a token: the session is dead. Tell the auth layer, which signs out;
+    // the route guard then shows the login page. A 401 without a token is a failed login
+    // attempt and is reported to the form as normal.
     if (response.status === 401 && session) {
-      clearSession();
-      window.location.hash = "#/login";
+      window.dispatchEvent(new Event(SESSION_EXPIRED_EVENT));
     }
     throw new ApiError(response.status, await readErrorMessage(response));
   }

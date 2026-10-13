@@ -1,6 +1,10 @@
 import { Link, NavLink, Outlet } from "react-router";
+import { useAuth } from "../auth/useAuth";
+import LogoMark from "../components/LogoMark";
 
 export default function AppLayout() {
+  const { username, signOut } = useAuth();
+
   return (
     <div className="min-h-screen flex flex-col">
       <header className="sticky top-0 z-10 border-b border-line bg-canvas/95 backdrop-blur">
@@ -22,12 +26,25 @@ export default function AppLayout() {
             </NavLink>
           </nav>
 
-          <Link
-            to="/games/new"
-            className="ml-auto rounded-md bg-gold px-4 py-2 text-sm font-semibold text-canvas hover:bg-gold-deep transition-colors"
-          >
-            Add game
-          </Link>
+          <div className="ml-auto flex items-center gap-4">
+            <Link
+              to="/games/new"
+              className="rounded-md bg-gold px-4 py-2 text-sm font-semibold text-canvas hover:bg-gold-deep transition-colors"
+            >
+              Add game
+            </Link>
+            <span className="text-sm text-muted">
+              <span className="sr-only">Signed in as </span>
+              {username}
+            </span>
+            <button
+              type="button"
+              onClick={signOut}
+              className="text-sm font-medium text-muted hover:text-ink transition-colors"
+            >
+              Sign out
+            </button>
+          </div>
         </div>
       </header>
 
@@ -35,26 +52,5 @@ export default function AppLayout() {
         <Outlet />
       </main>
     </div>
-  );
-}
-
-// A ticked box: the app is a backlog of checklists.
-function LogoMark() {
-  return (
-    <svg
-      aria-hidden
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2.5"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      className="text-gold"
-    >
-      <rect x="3" y="3" width="18" height="18" rx="4" />
-      <path d="m8 12 3 3 5-6" />
-    </svg>
   );
 }

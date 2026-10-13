@@ -3,6 +3,9 @@ import { Session } from "../types/auth";
 // localStorage is a flat string-to-string store; this is the entry name the session is saved under.
 const STORAGE_KEY = "dex.session";
 
+// Fired by http.ts on a 401; AuthProvider listens and signs out. Keeps http.ts free of React.
+export const SESSION_EXPIRED_EVENT = "dex:session-expired";
+
 export function saveSession(session: Session): void {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(session));
 }
