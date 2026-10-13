@@ -28,7 +28,7 @@ This is a training project. I need to understand everything I ship.
 - `src/mocks/` — MSW handlers and in-memory data. Started only in dev from `main.tsx`. Handlers mirror the backend spec's routes and compute progress from objectives; components never compute progress.
 - `src/pages/` — one component per route. Data via TanStack Query (`useQuery`, keys `['games']`, `['games', id]`). Render order: `isPending` → `isError` → empty → success, as early returns.
 - `src/routes/` — `createHashRouter` (Tauri serves from a custom scheme) with a layout route and `<Outlet />`.
-- `.env` holds `VITE_API_BASE_URL=/api` (gitignored; `.env.example` is committed).
+- `VITE_API_BASE_URL` defaults to `/api` in `http.ts`; `.env` (gitignored) is only needed to point at a real backend. `.env.example` is committed.
 
 ## Accessibility
 
