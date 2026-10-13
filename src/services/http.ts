@@ -1,3 +1,5 @@
+import { clearSession, getSession } from "./session";
+
 const baseUrl: string = import.meta.env.VITE_API_BASE_URL ?? "/api";
 
 // Carries the HTTP status so callers can tell a 409 from a 500.
@@ -22,12 +24,22 @@ async function readErrorMessage(response: Response): Promise<string> {
 }
 
 async function request<T>(method: string, url: string, body?: unknown): Promise<T> {
+  const session = getSession();
   const response = await fetch(`${baseUrl}${url}`, {
     method,
-    headers: body !== undefined ? { "Content-Type": "application/json" } : undefined,
+    headers: {
+      ...(body !== undefined ? { "Content-Type": "application/json" } : {}),
+      ...(session ? { Authorization: `Bearer ${session.accessToken}` } : {}),
+    },
     body: body !== undefined ? JSON.stringify(body) : undefined,
   });
   if (!response.ok) {
+    // 401 while holding a token: the session is dead, so drop it and go to login.
+    // 401 without one is a failed login attempt and is reported to the form as normal.
+    if (response.status === 401 && session) {
+      clearSession();
+      window.location.hash = "#/login";
+    }
     throw new ApiError(response.status, await readErrorMessage(response));
   }
   // 204 No Content has no body to parse.
