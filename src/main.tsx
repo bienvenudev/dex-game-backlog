@@ -18,15 +18,6 @@ const queryClient = new QueryClient({
   },
 });
 
-async function prepare() {
-  if (import.meta.env.DEV) {
-    const { worker } = await import("./mocks/browser");
-    await worker.start();
-  }
-}
-
-await prepare();
-
 ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
   <React.StrictMode>
     <QueryClientProvider client={queryClient}>
