@@ -90,6 +90,44 @@ A new key per keystroke means a request per keystroke, so the search text is deb
 
 "No games match your filters" vs "Your library is empty" is chosen by whether a filter is active. Filtering an empty library shows the first. Correct would need the unfiltered total (the backend's dashboard summary); not worth a second request.
 
+## Backend integration
+
+### Dashboard shares the `['games']` key prefix
+
+`['games', 'dashboard']`. The summary is derived from games, so any mutation that invalidates `['games']` (ticking an objective, changing status, deleting) also marks it stale, with no extra invalidation calls to forget. The same applies to `['games', id, 'history']`.
+
+### Status history is a section with its own query
+
+`StatusHistory` fetches `GET /games/{id}/history` itself instead of the page doing it, so a slow or failing history never blocks the objectives and status control above it, and it has its own loading and error text. It is the only place the optional status-change comment is ever shown. Entries are listed newest first; the backend returns them oldest first.
+
+### Pagination controls only appear when needed
+
+The backend pages at 20 by default and reports the totals in `X-Total-Count`, `X-Page` and `X-Page-Size`, so without handling it a library past 20 games would silently lose the rest. `http.getPage` returns `{ items, totalCount, page, pageSize }`. The `Pager` renders nothing while everything fits on one page, so a small library never sees it. Page size is 24, which divides evenly into the 2, 3, 4 and 6 column grids. The "N games" announcement uses `totalCount`, not the length of the current page.
+
+Deleting the last game on a later page leaves an empty page; the Library shows "Nothing on this page" with a link back to page 1 instead of a misleading empty-library message.
+
+### Filters: three always visible, the rest behind one button
+
+Search, the status radio group and sort are the controls used constantly, so they stay in the toolbar. Platform, minimum and maximum rating, has-objectives and fully-complete sit in a panel opened by a "Filters" button, which carries a count of active filters (also announced to screen readers) and turns gold when any are set. A "Clear filters" link appears only when something is active and keeps the current sort. The toolbar wraps rather than overflows, because the Tauri window opens at 800 px.
+
+The filter state is a single `GameFilters` object whose fields map one-to-one onto the backend's query parameters, with `undefined` meaning "no filter", so `getGames` builds the query string with one loop and `false` stays a real value (`hasObjectives=false`). Setting the minimum rating above the maximum also moves the maximum, because the backend answers that combination with a 400.
+
+### Changing a filter resets to page 1 through the shape of the state, not an effect
+
+`page` lives in the same state object as the filters, and the filter handler always sets `page: 1` while the pager changes only `page`. The alternative, an effect that watches the filters and resets the page, adds a render with a stale page and a second request.
+
+### Reordering with buttons, not drag and drop
+
+Up and down buttons per objective send the whole new order to `PUT /objectives/order`, which wants every id exactly once. Drag and drop needs a library or a lot of pointer and keyboard code to be accessible; buttons are keyboard-operable and announced by default. After a move, a hidden live region reads "X moved to position 2 of 4".
+
+### Objective actions are always visible
+
+Remove used to appear only on hover, which touch screens cannot trigger. With four actions per row (move up, move down, rename, remove) they are always shown, muted until hovered or focused.
+
+### Error messages: two response shapes
+
+The backend's own errors are `{ "message": "..." }`. ASP.NET's automatic model validation instead returns `{ "title": "One or more validation errors occurred.", "errors": { "Field": ["..."] } }` with no `message`, which the client first showed as just "Bad Request". `readErrorMessage` now reads `message`, then joins the strings in `errors`, then `detail`, then `title`. Verified against the real login endpoint: an empty body now shows "The Password field is required. The Username field is required."
+
 ## Mutations
 
 ### `useMutation` + invalidate, never manual cache edits
@@ -195,6 +233,9 @@ Left as-is because the fix adds more code than the capstone justifies. Each name
 - **Badge colours** (gold, green, rose) aren't distinguishable for every colour-vision deficiency. Acceptable because the label is always present.
 - **Screen-reader simulators can misreport.** Silktide once showed "Checked" on an unchecked box.
 - **`<dialog>` with `showModal()`** needs a 2022+ webview. Fine on Tauri 2 with current OSes.
+- **Filters are component state**, so they reset when the user opens a game and comes back. Fix: keep them in the URL with `useSearchParams` (also makes a filtered view shareable).
+- **Focus after a reorder** may leave the moved row because React moves the DOM node. The move is announced through a live region, but a keyboard user may have to Tab back. Fix: restore focus to the moved button by ref.
+- **The pager scrolls to the top but does not move focus**, so a keyboard user stays on the Next button. Fix: focus the results heading after a page change.
 
 **References.** [WAI-ARIA APG: Radio Group](https://www.w3.org/WAI/ARIA/apg/patterns/radio/) · [WAI-ARIA APG: Tabs](https://www.w3.org/WAI/ARIA/apg/patterns/tabs/) · [WCAG 2.2: On Input](https://www.w3.org/WAI/WCAG22/Understanding/on-input.html) · [MDN: `<dialog>`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/dialog) · [MDN: ARIA live regions](https://developer.mozilla.org/en-US/docs/Web/Accessibility/ARIA/Guides/Live_regions) · [MDN: search role](https://developer.mozilla.org/en-US/docs/Web/Accessibility/ARIA/Reference/Roles/search_role) · [Making search & filters accessible](https://theadminbar.com/accessibility-weekly/accessible-search-and-filter/) · [UXPin: filter UI best practices](https://www.uxpin.com/studio/blog/filter-ui-and-ux/) · [VA.gov: when a screen reader needs to announce content](https://design.va.gov/accessibility/when-a-screen-reader-needs-to-announce-content) · [Orca screen reader](https://help.gnome.org/users/orca/stable/)
 
