@@ -98,3 +98,31 @@ export const ALLOWED_TRANSITIONS: Record<GameStatus, GameStatus[]> = {
   FINISHED: ['PLAYING', 'ABANDONED'],
   ABANDONED: ['PLAYING', 'FINISHED'],
 };
+
+export type SortBy = 'title' | 'rating' | 'progress' | 'createdAt' | 'updatedAt';
+
+// Query parameters of GET /api/games. Absent means "no filter".
+export interface GameFilters {
+  search?: string;
+  status?: GameStatus;
+  platform?: Platform;
+  minRating?: number;
+  maxRating?: number;
+  hasObjectives?: boolean;
+  fullyComplete?: boolean;
+  sortBy?: SortBy;
+  sortDirection?: 'asc' | 'desc';
+  page?: number;
+  pageSize?: number;
+}
+
+// One row of GET /api/games/{id}/history, oldest first.
+export interface StatusHistoryEntry {
+  id: string;
+  gameId: string;
+  previousStatus: GameStatus;
+  newStatus: GameStatus;
+  changedBy: string;
+  changedAt: string;
+  comment: string | null;
+}

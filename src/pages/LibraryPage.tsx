@@ -1,58 +1,55 @@
-import { useState } from "react";
+import { ReactNode, useState } from "react";
 import { Link } from "react-router";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { getGames } from "../services/games";
-import { GAME_STATUSES, GameStatus, STATUS_LABELS } from "../types/game";
+import { GameFilters } from "../types/game";
 import { useDebounce } from "../hooks/useDebounce";
+import { DEFAULT_FILTERS, hasActiveFilters } from "../utils/gameFilters";
+import CardGrid from "../components/CardGrid";
 import GameCard from "../components/GameCard";
+import LibraryFilters from "../components/LibraryFilters";
+import Pager from "../components/Pager";
 
-type StatusFilter = GameStatus | "";
+// 24 divides evenly into the 2, 3, 4 and 6 column grids the card layout produces.
+const PAGE_SIZE = 24;
 
 export default function LibraryPage() {
-  const [search, setSearch] = useState("");
-  const [status, setStatus] = useState<StatusFilter>("");
-  const debouncedSearch = useDebounce(search);
+  const [filters, setFilters] = useState<GameFilters>(DEFAULT_FILTERS);
+  const debouncedSearch = useDebounce(filters.search);
 
-  const filters = { search: debouncedSearch, status: status || undefined };
-  const isFiltering = Boolean(filters.search || filters.status);
+  // Everything except search applies immediately; search waits for a pause in typing.
+  const queryFilters: GameFilters = { ...filters, search: debouncedSearch, pageSize: PAGE_SIZE };
 
-  const { data: games, isPending, isError, error, isPlaceholderData } = useQuery({
-    queryKey: ["games", filters],
-    queryFn: () => getGames(filters),
+  const { data, isPending, isError, error, isPlaceholderData } = useQuery({
+    queryKey: ["games", queryFilters],
+    queryFn: () => getGames(queryFilters),
     placeholderData: keepPreviousData, // keep old list on screen while the new filter loads
   });
 
+  // Any filter change returns to page 1; only the pager moves between pages.
+  function changeFilters(patch: Partial<GameFilters>) {
+    setFilters((prev) => ({ ...prev, ...patch, page: 1 }));
+  }
+
+  function clearFilters() {
+    setFilters((prev) => ({
+      ...DEFAULT_FILTERS,
+      sortBy: prev.sortBy,
+      sortDirection: prev.sortDirection,
+    }));
+  }
+
+  function goToPage(page: number) {
+    setFilters((prev) => ({ ...prev, page }));
+    window.scrollTo({ top: 0 });
+  }
+
+  const isFiltering = hasActiveFilters(filters);
+  const currentPage = filters.page ?? 1;
+
   return (
     <div className="space-y-8">
-      <div className="flex flex-wrap items-center justify-between gap-4">
-        {/* A radio group: one Tab stop, arrow keys move between options, "2 of 5" is announced. */}
-        <fieldset className="flex flex-wrap gap-2 rounded-md border border-line bg-panel p-1 text-sm font-medium">
-          <legend className="sr-only">Filter by status</legend>
-          <FilterPill value="" current={status} onChange={setStatus}>
-            All
-          </FilterPill>
-          {GAME_STATUSES.map((s) => (
-            <FilterPill key={s} value={s} current={status} onChange={setStatus}>
-              {STATUS_LABELS[s]}
-            </FilterPill>
-          ))}
-        </fieldset>
-
-        {/* role="search" makes this a landmark screen readers can jump to. */}
-        <div role="search" className="relative w-72">
-          <label>
-            <span className="sr-only">Search by title</span>
-            <SearchIcon />
-            <input
-              type="search"
-              placeholder="Find a game"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="w-full rounded-md border border-line bg-panel py-2 pl-9 pr-3 text-sm placeholder:text-muted focus:border-gold focus:outline-none"
-            />
-          </label>
-        </div>
-      </div>
+      <LibraryFilters filters={filters} onChange={changeFilters} onClear={clearFilters} />
 
       <section>
         <h1 className="mb-6 text-2xl font-bold tracking-tight">
@@ -60,7 +57,7 @@ export default function LibraryPage() {
           {/* Live region: announces the new count after a filter change, since the grid itself
               updates silently. Always mounted so screen readers pick up the change. */}
           <span aria-live="polite" className="ml-2 text-base font-normal text-muted">
-            {games && !isPending && !isPlaceholderData && formatCount(games.length)}
+            {data && !isPending && !isPlaceholderData && formatCount(data.totalCount)}
           </span>
         </h1>
 
@@ -76,9 +73,20 @@ export default function LibraryPage() {
           </CardGrid>
         ) : isError ? (
           <Notice title="Couldn't load your library">{error.message}</Notice>
-        ) : games.length === 0 ? (
-          isFiltering ? (
-            <Notice title="No games match">Try a different status or clear the search.</Notice>
+        ) : data.items.length === 0 ? (
+          currentPage > 1 ? (
+            // Happens after deleting the last game on a later page.
+            <Notice title="Nothing on this page">
+              <button
+                type="button"
+                onClick={() => goToPage(1)}
+                className="text-gold hover:underline"
+              >
+                Back to the first page
+              </button>
+            </Notice>
+          ) : isFiltering ? (
+            <Notice title="No games match">Try different filters or clear the search.</Notice>
           ) : (
             <Notice title="Your library is empty">
               <Link to="/games/new" className="text-gold hover:underline">
@@ -87,13 +95,21 @@ export default function LibraryPage() {
             </Notice>
           )
         ) : (
-          <div className={isPlaceholderData ? "opacity-60 transition-opacity" : ""}>
-            <CardGrid>
-              {games.map((game) => (
-                <GameCard key={game.id} game={game} />
-              ))}
-            </CardGrid>
-          </div>
+          <>
+            <div className={isPlaceholderData ? "opacity-60 transition-opacity" : ""}>
+              <CardGrid>
+                {data.items.map((game) => (
+                  <GameCard key={game.id} game={game} />
+                ))}
+              </CardGrid>
+            </div>
+            <Pager
+              page={currentPage}
+              pageSize={data.pageSize}
+              totalCount={data.totalCount}
+              onPageChange={goToPage}
+            />
+          </>
         )}
       </section>
     </div>
@@ -105,63 +121,11 @@ function formatCount(n: number): string {
   return n === 1 ? "1 game" : `${n} games`;
 }
 
-function CardGrid({ children }: { children: React.ReactNode }) {
-  return (
-    <div className="grid grid-cols-[repeat(auto-fill,minmax(160px,1fr))] gap-x-6 gap-y-8">
-      {children}
-    </div>
-  );
-}
-
-function FilterPill({
-  value,
-  current,
-  onChange,
-  children,
-}: {
-  value: StatusFilter;
-  current: StatusFilter;
-  onChange: (value: StatusFilter) => void;
-  children: React.ReactNode;
-}) {
-  // The radio is visually hidden but still focusable; the label is the pill and styles itself
-  // from the input's state via the `has-*` variants.
-  return (
-    <label className="cursor-pointer rounded px-3 py-1.5 text-muted transition-colors hover:text-ink has-checked:bg-panel-raised has-checked:text-ink has-focus-visible:outline-2 has-focus-visible:outline-offset-2 has-focus-visible:outline-gold">
-      <input
-        type="radio"
-        name="status"
-        value={value}
-        checked={current === value}
-        onChange={() => onChange(value)}
-        className="sr-only"
-      />
-      {children}
-    </label>
-  );
-}
-
-function Notice({ title, children }: { title: string; children: React.ReactNode }) {
+function Notice({ title, children }: { title: string; children: ReactNode }) {
   return (
     <div className="rounded-md border border-line bg-panel px-6 py-10 text-center">
       <p className="font-semibold">{title}</p>
       <p className="mt-1 text-sm text-muted">{children}</p>
     </div>
-  );
-}
-
-function SearchIcon() {
-  return (
-    <svg
-      aria-hidden
-      className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-    >
-      <circle cx="11" cy="11" r="7" />
-      <path d="m20 20-3.5-3.5" />
-    </svg>
   );
 }
