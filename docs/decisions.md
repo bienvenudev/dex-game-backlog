@@ -221,6 +221,10 @@ Completed objectives were 14 px muted grey with a line through: the ratio passed
 
 Progress bars have `role="progressbar"`, `aria-label` and `aria-valuetext` ("1 of 3 objectives"). Warnings and errors are `role="alert"`; invalid inputs set `aria-invalid` and `aria-describedby`. Decorative artwork is `alt=""`/`aria-hidden`. Gold `:focus-visible` outlines. `prefers-reduced-motion` disables transitions globally.
 
+### Show and hide password
+
+A button at the right edge of the password field switches the input between `type="password"` and `type="text"`. It keeps a fixed accessible name ("Show password") and reports its state with `aria-pressed`; changing the label as well would make a screen reader announce the state twice. The password input is tied to its label with `htmlFor` rather than being wrapped by it, because a button inside a `<label>` makes it unclear which control the label names. The eye icon is crossed out while the password is visible.
+
 ### Known limitations (deliberate)
 
 Left as-is because the fix adds more code than the capstone justifies. Each names the cheap fix.

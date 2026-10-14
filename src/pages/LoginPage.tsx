@@ -14,6 +14,8 @@ export default function LoginPage() {
 
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const passwordId = useId();
   const [error, setError] = useState<string | null>(null);
   const [isPending, setIsPending] = useState(false);
   const errorId = useId();
@@ -64,19 +66,35 @@ export default function LoginPage() {
             />
           </label>
 
-          <label className="block">
-            <span className="mb-1.5 block text-sm font-medium">Password</span>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              autoComplete="current-password"
-              required
-              disabled={isPending}
-              aria-invalid={error ? true : undefined}
-              className={inputClass}
-            />
-          </label>
+          {/* htmlFor instead of a wrapping label: the toggle button must not sit inside the label. */}
+          <div>
+            <label htmlFor={passwordId} className="mb-1.5 block text-sm font-medium">
+              Password
+            </label>
+            <div className="relative">
+              <input
+                id={passwordId}
+                type={showPassword ? "text" : "password"}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                autoComplete="current-password"
+                required
+                disabled={isPending}
+                aria-invalid={error ? true : undefined}
+                className={`${inputClass} pr-11`}
+              />
+              {/* Fixed label + aria-pressed: the state is announced once, not twice. */}
+              <button
+                type="button"
+                onClick={() => setShowPassword((shown) => !shown)}
+                aria-pressed={showPassword}
+                aria-label="Show password"
+                className="absolute inset-y-0 right-0 flex items-center rounded-md px-3 text-muted transition-colors hover:text-ink"
+              >
+                <EyeIcon crossedOut={showPassword} />
+              </button>
+            </div>
+          </div>
 
           {error && (
             <p id={errorId} role="alert" className="text-sm text-rose-400">
@@ -94,5 +112,25 @@ export default function LoginPage() {
         </form>
       </div>
     </main>
+  );
+}
+
+function EyeIcon({ crossedOut }: { crossedOut: boolean }) {
+  return (
+    <svg
+      aria-hidden
+      width="18"
+      height="18"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z" />
+      <circle cx="12" cy="12" r="3" />
+      {crossedOut && <path d="M3 3l18 18" />}
+    </svg>
   );
 }
