@@ -78,3 +78,23 @@ export const EMPTY_GAME_INPUT: GameInput = {
   coverUrl: null,
   backgroundUrl: null,
 };
+
+// Body and response of PATCH /api/games/{id}/status.
+export interface StatusUpdateInput {
+  status: GameStatus;
+  comment: string | null;
+}
+
+export interface StatusUpdateResponse {
+  game: GameSummary;
+  hasOutstandingObjectives: boolean; // finished while objectives remain unticked
+}
+
+// Mirrors the backend's StatusTransitionRules so the UI only offers legal moves.
+// The backend still enforces them; a drift shows up as a 409, not bad data.
+export const ALLOWED_TRANSITIONS: Record<GameStatus, GameStatus[]> = {
+  UNPLAYED: ['PLAYING', 'FINISHED', 'ABANDONED'],
+  PLAYING: ['FINISHED', 'ABANDONED', 'UNPLAYED'],
+  FINISHED: ['PLAYING', 'ABANDONED'],
+  ABANDONED: ['PLAYING', 'FINISHED'],
+};

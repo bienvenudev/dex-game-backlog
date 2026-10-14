@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate, useParams } from "react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { deleteGame, getGame } from "../services/games";
+import { changeStatus, deleteGame, getGame } from "../services/games";
 import GameLoadError from "../components/GameLoadError";
 import {
   addObjective,
@@ -9,17 +9,20 @@ import {
   removeObjective,
   reopenObjective,
 } from "../services/objectives";
-import { GameDetail, Objective } from "../types/game";
+import { GameDetail, Objective, StatusUpdateInput } from "../types/game";
 import StatusBadge from "../components/StatusBadge";
 import ProgressBar from "../components/ProgressBar";
 import AddObjectiveForm from "../components/AddObjectiveForm";
 import ConfirmDialog from "../components/ConfirmDialog";
+import StatusControl from "../components/StatusControl";
 
 export default function GameDetailPage() {
   const { gameId } = useParams<{ gameId: string }>();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [confirmingDelete, setConfirmingDelete] = useState(false);
+  // Set from the server's answer, not guessed client-side; cleared on the next change.
+  const [finishedWithOutstanding, setFinishedWithOutstanding] = useState(false);
 
   const invalidateGames = () => queryClient.invalidateQueries({ queryKey: ["games"] });
 
@@ -39,6 +42,15 @@ export default function GameDetailPage() {
   const removeMutation = useMutation({
     mutationFn: (objectiveId: string) => removeObjective(gameId!, objectiveId),
     onSuccess: invalidateGames,
+  });
+
+  const statusMutation = useMutation({
+    mutationFn: (input: StatusUpdateInput) => changeStatus(gameId!, input),
+    onMutate: () => setFinishedWithOutstanding(false),
+    onSuccess: async (response) => {
+      setFinishedWithOutstanding(response.hasOutstandingObjectives);
+      await invalidateGames();
+    },
   });
 
   const deleteMutation = useMutation({
@@ -95,6 +107,21 @@ export default function GameDetailPage() {
                 <span className="text-muted">Added {formatDate(game.createdAt)}</span>
               </div>
             </div>
+
+            <StatusControl
+              key={game.status}
+              currentStatus={game.status}
+              onChange={(input) => statusMutation.mutateAsync(input)}
+              isPending={statusMutation.isPending}
+              error={statusMutation.isError ? statusMutation.error.message : null}
+            />
+
+            {finishedWithOutstanding && (
+              <p role="alert" className="rounded-md border border-gold/40 bg-gold/10 px-3 py-2 text-sm">
+                Marked as finished with {game.progress.total - game.progress.completed} objective
+                {game.progress.total - game.progress.completed === 1 ? "" : "s"} still unticked.
+              </p>
+            )}
 
             {game.notes ? (
               <p className="max-w-prose text-muted">{game.notes}</p>

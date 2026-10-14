@@ -16,7 +16,8 @@ Built with React and TypeScript, packaged as a desktop application with Tauri 2.
 - **Game detail** with hero artwork, rating, notes, dates, and the full objective checklist. Add, tick, untick and remove objectives in place.
 - **Add and edit** a game: title, platform (Steam, Epic, GOG, Xbox, PlayStation, Other), status, rating out of 10, notes, and cover / background image URLs. Rating is only available once a game is no longer Unplayed and is cleared if it goes back.
 - **Progress** is derived from objectives (ticked / total) and is identical on the Library and the detail page. A game with no objectives shows "No objectives", not 0 %.
-- **Guard rails** from the spec: finishing a game with unticked objectives warns but doesn't block; deleting a game requires confirmation and states that its objectives go with it.
+- **Status changes** are a separate action on the detail page that only offers legal moves (Unplayed → Playing, Finished or Abandoned, and so on) and takes an optional comment for the status history. Finishing a game with unticked objectives shows a notice but isn't blocked.
+- **Guard rails** from the spec: deleting a game requires confirmation and states that its objectives go with it.
 - **Every screen** handles loading, empty and error states, including a 404 treatment for games that no longer exist.
 - **Accessible by design**: native radio-group filters with arrow-key navigation, a live region announcing result counts, labelled controls throughout, a focus-trapping `<dialog>`, visible focus rings, and `prefers-reduced-motion` support. See [Accessibility](#accessibility).
 

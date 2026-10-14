@@ -108,6 +108,19 @@ A new key per keystroke means a request per keystroke, so the search text is deb
 
 Disabled with a hint keeps the layout stable and teaches the rule; hidden would make the field undiscoverable. Changing status to `UNPLAYED` also clears the rating client-side, matching what the backend does.
 
+### Status changes are their own action, not part of Edit
+
+The backend splits them: `PUT /api/games/{id}` must receive the game's *current* status (a different one is a 409), and `PATCH /api/games/{id}/status` with `{ status, comment }` enforces the transition rules, clears the rating on a move to `UNPLAYED`, records status history, and returns `{ game, hasOutstandingObjectives }`.
+
+Two ways to fit the UI to that:
+
+- **Keep status in the Edit form** and send `PATCH` then `PUT` on save. Smallest change, but two requests that aren't atomic (the status can change while the other edits fail), and an illegal transition only fails after Save.
+- **A separate status control on the Detail page** that sends `PATCH` immediately. Chosen.
+
+The control (`StatusControl`) offers only the moves allowed from the current status, copied from the backend's `StatusTransitionRules` into `ALLOWED_TRANSITIONS`. The backend still enforces them, so a drift surfaces as a 409, never as bad data. An optional comment goes into status history. The "finished with unticked objectives" notice comes from the server's `hasOutstandingObjectives`, not a client-side count, and finishing is never blocked. The Edit form shows status read-only; the Add form still sets an initial status, which the create endpoint accepts.
+
+**To reproduce.** Open a Playing game with unticked objectives, move it to Finished: the notice appears and the dropdown now offers only Playing and Abandoned. Open Edit: status is shown but not editable.
+
 ### Delete confirmation is a native `<dialog>`
 
 `showModal()` gives a backdrop and focus trap for free. Escape and backdrop click both cancel. A headless UI library was considered and rejected: nothing here needs what HTML lacks.

@@ -1,4 +1,11 @@
-import { GameDetail, GameInput, GameStatus, GameSummary } from "../types/game";
+import {
+  GameDetail,
+  GameInput,
+  GameStatus,
+  GameSummary,
+  StatusUpdateInput,
+  StatusUpdateResponse,
+} from "../types/game";
 import { http } from "./http";
 
 export interface GameFilters {
@@ -28,4 +35,11 @@ export function updateGame(gameId: string, input: GameInput): Promise<GameSummar
 
 export function deleteGame(gameId: string): Promise<void> {
   return http.delete(`/games/${gameId}`);
+}
+
+export function changeStatus(
+  gameId: string,
+  input: StatusUpdateInput,
+): Promise<StatusUpdateResponse> {
+  return http.patch<StatusUpdateResponse>(`/games/${gameId}/status`, input);
 }
