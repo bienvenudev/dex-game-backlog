@@ -7,7 +7,9 @@ import {
   addObjective,
   completeObjective,
   removeObjective,
+  renameObjective,
   reopenObjective,
+  reorderObjectives,
 } from "../services/objectives";
 import { GameDetail, Objective, StatusUpdateInput } from "../types/game";
 import StatusBadge from "../components/StatusBadge";
@@ -15,6 +17,11 @@ import ProgressBar from "../components/ProgressBar";
 import AddObjectiveForm from "../components/AddObjectiveForm";
 import ConfirmDialog from "../components/ConfirmDialog";
 import StatusControl from "../components/StatusControl";
+import StatusHistory from "../components/StatusHistory";
+import ObjectiveRow from "../components/ObjectiveRow";
+import SectionTab from "../components/SectionTab";
+import Stat from "../components/Stat";
+import { formatDate } from "../utils/format";
 
 export default function GameDetailPage() {
   const { gameId } = useParams<{ gameId: string }>();
@@ -23,6 +30,8 @@ export default function GameDetailPage() {
   const [confirmingDelete, setConfirmingDelete] = useState(false);
   // Set from the server's answer, not guessed client-side; cleared on the next change.
   const [finishedWithOutstanding, setFinishedWithOutstanding] = useState(false);
+  // Read out by a screen reader after a reorder, because the moved row may lose focus.
+  const [announcement, setAnnouncement] = useState("");
 
   const invalidateGames = () => queryClient.invalidateQueries({ queryKey: ["games"] });
 
@@ -41,6 +50,17 @@ export default function GameDetailPage() {
 
   const removeMutation = useMutation({
     mutationFn: (objectiveId: string) => removeObjective(gameId!, objectiveId),
+    onSuccess: invalidateGames,
+  });
+
+  const renameMutation = useMutation({
+    mutationFn: ({ id, label }: { id: string; label: string }) =>
+      renameObjective(gameId!, id, label),
+    onSuccess: invalidateGames,
+  });
+
+  const reorderMutation = useMutation({
+    mutationFn: (objectiveIds: string[]) => reorderObjectives(gameId!, objectiveIds),
     onSuccess: invalidateGames,
   });
 
@@ -72,6 +92,22 @@ export default function GameDetailPage() {
   if (isError) return <GameLoadError error={error} />;
 
   const objectiveCount = game.objectives.length;
+  const objectivesBusy =
+    toggleMutation.isPending ||
+    removeMutation.isPending ||
+    renameMutation.isPending ||
+    reorderMutation.isPending;
+
+  // Swap with the neighbour and send the whole new order; the backend wants every id exactly once.
+  function moveObjective(index: number, direction: -1 | 1) {
+    const target = index + direction;
+    const ids = game!.objectives.map((o) => o.id);
+    [ids[index], ids[target]] = [ids[target], ids[index]];
+    const label = game!.objectives[index].label;
+    reorderMutation.mutate(ids, {
+      onSuccess: () => setAnnouncement(`${label} moved to position ${target + 1} of ${ids.length}`),
+    });
+  }
 
   return (
     <>
@@ -172,15 +208,9 @@ export default function GameDetailPage() {
         </div>
 
         <section className="mt-12 md:ml-70" aria-labelledby="objectives-heading">
-          <div className="border-b border-line">
-            <h2
-              id="objectives-heading"
-              className="inline-block border-b-2 border-gold pb-2 text-sm font-semibold uppercase tracking-wide"
-            >
-              Objectives
-              <span className="ml-2 font-normal text-muted">{objectiveCount}</span>
-            </h2>
-          </div>
+          <SectionTab id="objectives-heading" count={objectiveCount}>
+            Objectives
+          </SectionTab>
 
           {objectiveCount === 0 ? (
             <p className="mt-6 text-sm text-muted">
@@ -189,23 +219,32 @@ export default function GameDetailPage() {
             </p>
           ) : (
             <ul className="mt-2 divide-y divide-line">
-              {game.objectives.map((objective) => (
+              {game.objectives.map((objective, index) => (
                 <ObjectiveRow
                   key={objective.id}
                   objective={objective}
-                  busy={toggleMutation.isPending || removeMutation.isPending}
+                  index={index}
+                  count={objectiveCount}
+                  busy={objectivesBusy}
                   onToggle={() => toggleMutation.mutate(objective)}
                   onRemove={() => removeMutation.mutate(objective.id)}
+                  onMove={(direction) => moveObjective(index, direction)}
+                  onRename={(label) => renameMutation.mutateAsync({ id: objective.id, label })}
                 />
               ))}
             </ul>
           )}
 
-          {(toggleMutation.isError || removeMutation.isError) && (
+          {(toggleMutation.isError || removeMutation.isError || reorderMutation.isError) && (
             <p role="alert" className="mt-3 text-sm text-rose-400">
-              {toggleMutation.error?.message ?? removeMutation.error?.message}
+              {toggleMutation.error?.message ??
+                removeMutation.error?.message ??
+                reorderMutation.error?.message}
             </p>
           )}
+          <p className="sr-only" aria-live="polite">
+            {announcement}
+          </p>
 
           <div className="mt-6">
             <AddObjectiveForm
@@ -215,6 +254,8 @@ export default function GameDetailPage() {
             />
           </div>
         </section>
+
+        <StatusHistory gameId={game.id} />
       </div>
 
       <ConfirmDialog
@@ -274,61 +315,6 @@ function Cover({ game }: { game: GameDetail }) {
   );
 }
 
-function Stat({ label, children }: { label: string; children: React.ReactNode }) {
-  return (
-    <div className="rounded-sm border border-line border-b-gold bg-panel px-4 py-3">
-      <dt className="text-xs font-semibold uppercase tracking-wide text-gold">{label}</dt>
-      <dd className="mt-2">{children}</dd>
-    </div>
-  );
-}
-
-function ObjectiveRow({
-  objective,
-  busy,
-  onToggle,
-  onRemove,
-}: {
-  objective: Objective;
-  busy: boolean;
-  onToggle: () => void;
-  onRemove: () => void;
-}) {
-  return (
-    <li className="group flex items-center gap-3 py-3">
-      {/* Input nested in the label: implicit association, no ids to keep in sync. */}
-      <label
-        className={`flex flex-1 cursor-pointer items-center gap-3 text-base ${
-          objective.completed ? "text-ink/70 line-through decoration-muted/60" : ""
-        }`}
-      >
-        <input
-          type="checkbox"
-          checked={objective.completed}
-          disabled={busy}
-          onChange={onToggle}
-          className="h-4 w-4 shrink-0 accent-gold"
-        />
-        {objective.label}
-      </label>
-      {objective.completedAt && (
-        <span className="text-xs text-muted">{formatDate(objective.completedAt)}</span>
-      )}
-      <button
-        type="button"
-        onClick={onRemove}
-        disabled={busy}
-        aria-label={`Remove objective: ${objective.label}`}
-        className="rounded p-1 text-muted opacity-0 transition-opacity hover:text-rose-400 focus-visible:opacity-100 group-hover:opacity-100"
-      >
-        <svg aria-hidden width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-          <path d="M6 6l12 12M18 6L6 18" />
-        </svg>
-      </button>
-    </li>
-  );
-}
-
 function DetailSkeleton() {
   return (
     <div className="animate-pulse" aria-busy>
@@ -343,14 +329,4 @@ function DetailSkeleton() {
       </div>
     </div>
   );
-}
-
-
-function formatDate(iso: string | null): string | null {
-  if (!iso) return null;
-  return new Date(iso).toLocaleDateString(undefined, {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-  });
 }
