@@ -159,6 +159,12 @@ The control (`StatusControl`) offers only the moves allowed from the current sta
 
 **To reproduce.** Open a Playing game with unticked objectives, move it to Finished: the notice appears and the dropdown now offers only Playing and Abandoned. Open Edit: status is shown but not editable.
 
+### Steam art is built from an app ID on the frontend
+
+Pasting two long CDN URLs per game is tedious, so the form has a Steam app ID field. Typing a number fills the cover and background URL fields (`utils/steam.ts` holds the two URL templates) and the preview updates live. The backend contract is unchanged: it still stores only `coverUrl` and `backgroundUrl`. Putting this in the backend would need a new column and make it depend on Steam's CDN layout, for something that is purely presentation. The Edit form recovers the app id from a stored Steam URL with a regex, and shows nothing for non-Steam URLs. Clearing the field leaves the URLs untouched so hand-entered art isn't wiped.
+
+Caveat: not every Steam app has both images (older titles often lack `library_hero.jpg`), so a pasted id can produce a broken image. The cards and hero don't yet fall back when an image fails to load.
+
 ### Delete confirmation is a native `<dialog>`
 
 `showModal()` gives a backdrop and focus trap for free. Escape and backdrop click both cancel. A headless UI library was considered and rejected: nothing here needs what HTML lacks.

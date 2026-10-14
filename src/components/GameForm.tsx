@@ -7,6 +7,7 @@ import {
   Platform,
   STATUS_LABELS,
 } from "../types/game";
+import { parseSteamAppId, steamCoverUrl, steamHeroUrl } from "../utils/steam";
 
 interface Props {
   initialValues: GameInput;
@@ -32,6 +33,7 @@ export default function GameForm({
 }: Props) {
   const [values, setValues] = useState<GameInput>(initialValues);
   const errorId = useId();
+  const [steamAppId, setSteamAppId] = useState(() => parseSteamAppId(initialValues.coverUrl));
 
   function setField<K extends keyof GameInput>(key: K, value: GameInput[K]) {
     setValues((prev) => ({ ...prev, [key]: value }));
@@ -44,6 +46,19 @@ export default function GameForm({
       status,
       rating: status === "UNPLAYED" ? null : prev.rating,
     }));
+  }
+
+  function handleSteamAppIdChange(raw: string) {
+    const appId = raw.replace(/\D/g, ""); // digits only; also cleans a pasted "app/292030"
+    setSteamAppId(appId);
+    // Clearing the field leaves the URLs alone, so art typed in by hand is never wiped by accident.
+    if (appId) {
+      setValues((prev) => ({
+        ...prev,
+        coverUrl: steamCoverUrl(appId),
+        backgroundUrl: steamHeroUrl(appId),
+      }));
+    }
   }
 
   function handleSubmit(e: FormEvent) {
@@ -135,6 +150,19 @@ export default function GameForm({
             onChange={(e) => setField("notes", e.target.value)}
             rows={4}
             className={inputClass}
+          />
+        </Field>
+
+        <Field
+          label="Steam app ID"
+          hint="The number in a store link, like store.steampowered.com/app/292030. Fills both image fields below."
+        >
+          <input
+            value={steamAppId}
+            onChange={(e) => handleSteamAppIdChange(e.target.value)}
+            inputMode="numeric"
+            placeholder="292030"
+            className={`${inputClass} sm:w-48`}
           />
         </Field>
 
