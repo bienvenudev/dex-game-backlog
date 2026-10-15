@@ -4,6 +4,7 @@ import App from "./App";
 import "./index.css";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ApiError } from "./services/http";
+import AuthProvider from "./auth/AuthProvider";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -18,19 +19,13 @@ const queryClient = new QueryClient({
   },
 });
 
-async function prepare() {
-  if (import.meta.env.DEV) {
-    const { worker } = await import("./mocks/browser");
-    await worker.start();
-  }
-}
-
-await prepare();
-
 ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
   <React.StrictMode>
     <QueryClientProvider client={queryClient}>
-      <App />
+      {/* Inside the query provider because signOut clears the query cache. */}
+      <AuthProvider>
+        <App />
+      </AuthProvider>
     </QueryClientProvider>
   </React.StrictMode>,
 );

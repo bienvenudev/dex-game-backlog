@@ -47,7 +47,6 @@ export default function EditGamePage() {
     coverUrl: game.coverUrl,
     backgroundUrl: game.backgroundUrl,
   };
-  const outstanding = game.objectives.filter((o) => !o.completed).length;
 
   return (
     <div className="mx-auto max-w-3xl">
@@ -63,7 +62,7 @@ export default function EditGamePage() {
         isPending={mutation.isPending}
         error={mutation.isError ? mutation.error.message : null}
         submitLabel="Save changes"
-        outstandingObjectives={outstanding}
+        statusEditable={false}
       />
     </div>
   );

@@ -118,6 +118,18 @@ Read bottom-up, from the network to the screen.
 
 `GameSummary` vs `GameDetail`: with one `Game` type and optional `objectives`, every component receiving a `Game` would have to check whether objectives were loaded, and TypeScript could not tell which case applies. Two types encode which endpoint the data came from.
 
+### ASP.NET sends two kinds of error body
+
+Errors raised in a controller (`return Conflict(new { message = "..." })`) have a `message` field. Errors raised by the framework before the controller runs, such as a missing required field, use the standard ProblemDetails format: `{ "title": "One or more validation errors occurred.", "status": 400, "errors": { "Password": ["The Password field is required."] } }`. A client that only reads `message` shows "Bad Request" for the second kind. The error handler reads both shapes, and the fallback chain (`message`, `errors`, `detail`, `title`, status text) means something readable always comes out.
+
+**Search:** "ASP.NET Core ProblemDetails", "ValidationProblemDetails", "ApiController automatic 400".
+
+### Pagination totals live in response headers
+
+A paged list endpoint returns a bare array as the body, so the totals cannot go in it. The backend puts them in `X-Total-Count`, `X-Page` and `X-Page-Size`. `fetch` exposes them through `response.headers.get(...)`. In a browser, cross-origin responses hide custom headers unless the server lists them in `Access-Control-Expose-Headers`; the dev proxy keeps everything same-origin, so they are readable without that.
+
+**Search:** "Access-Control-Expose-Headers", "X-Total-Count pagination".
+
 ## Mocks
 
 ### Handlers read the request, not the page

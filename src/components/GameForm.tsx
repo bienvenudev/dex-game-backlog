@@ -7,6 +7,7 @@ import {
   Platform,
   STATUS_LABELS,
 } from "../types/game";
+import { parseSteamAppId, steamCoverUrl, steamHeroUrl } from "../utils/steam";
 
 interface Props {
   initialValues: GameInput;
@@ -14,7 +15,8 @@ interface Props {
   isPending: boolean;
   error: string | null;
   submitLabel: string;
-  outstandingObjectives?: number;
+  // Edit passes false: status changes go through PATCH /status on the detail page.
+  statusEditable?: boolean;
 }
 
 const inputClass =
@@ -27,10 +29,11 @@ export default function GameForm({
   isPending,
   error,
   submitLabel,
-  outstandingObjectives = 0,
+  statusEditable = true,
 }: Props) {
   const [values, setValues] = useState<GameInput>(initialValues);
   const errorId = useId();
+  const [steamAppId, setSteamAppId] = useState(() => parseSteamAppId(initialValues.coverUrl));
 
   function setField<K extends keyof GameInput>(key: K, value: GameInput[K]) {
     setValues((prev) => ({ ...prev, [key]: value }));
@@ -45,6 +48,19 @@ export default function GameForm({
     }));
   }
 
+  function handleSteamAppIdChange(raw: string) {
+    const appId = raw.replace(/\D/g, ""); // digits only; also cleans a pasted "app/292030"
+    setSteamAppId(appId);
+    // Clearing the field leaves the URLs alone, so art typed in by hand is never wiped by accident.
+    if (appId) {
+      setValues((prev) => ({
+        ...prev,
+        coverUrl: steamCoverUrl(appId),
+        backgroundUrl: steamHeroUrl(appId),
+      }));
+    }
+  }
+
   function handleSubmit(e: FormEvent) {
     e.preventDefault();
     onSubmit({
@@ -55,7 +71,6 @@ export default function GameForm({
   }
 
   const ratingDisabled = values.status === "UNPLAYED";
-  const finishingWithOutstanding = values.status === "FINISHED" && outstandingObjectives > 0;
 
   return (
     <form
@@ -89,27 +104,29 @@ export default function GameForm({
             </select>
           </Field>
 
-          <Field label="Status">
-            <select
-              value={values.status}
-              onChange={(e) => handleStatusChange(e.target.value as GameStatus)}
-              className={inputClass}
-            >
-              {GAME_STATUSES.map((s) => (
-                <option key={s} value={s}>
-                  {STATUS_LABELS[s]}
-                </option>
-              ))}
-            </select>
-          </Field>
+          {statusEditable ? (
+            <Field label="Status">
+              <select
+                value={values.status}
+                onChange={(e) => handleStatusChange(e.target.value as GameStatus)}
+                className={inputClass}
+              >
+                {GAME_STATUSES.map((s) => (
+                  <option key={s} value={s}>
+                    {STATUS_LABELS[s]}
+                  </option>
+                ))}
+              </select>
+            </Field>
+          ) : (
+            <div>
+              <span className="mb-1.5 block text-sm font-medium">Status</span>
+              <p className="py-2 text-sm">{STATUS_LABELS[values.status]}</p>
+              <span className="mt-1 block text-xs text-muted">Change it from the game page.</span>
+            </div>
+          )}
         </div>
 
-        {finishingWithOutstanding && (
-          <p role="alert" className="rounded-md border border-gold/40 bg-gold/10 px-3 py-2 text-sm">
-            {outstandingObjectives} objective{outstandingObjectives === 1 ? "" : "s"} still
-            unticked. You can finish anyway.
-          </p>
-        )}
 
         <Field
           label="Rating"
@@ -133,6 +150,19 @@ export default function GameForm({
             onChange={(e) => setField("notes", e.target.value)}
             rows={4}
             className={inputClass}
+          />
+        </Field>
+
+        <Field
+          label="Steam app ID"
+          hint="The number in a store link, like store.steampowered.com/app/292030. Fills both image fields below."
+        >
+          <input
+            value={steamAppId}
+            onChange={(e) => handleSteamAppIdChange(e.target.value)}
+            inputMode="numeric"
+            placeholder="292030"
+            className={`${inputClass} sm:w-48`}
           />
         </Field>
 

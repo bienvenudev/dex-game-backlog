@@ -17,6 +17,14 @@ export default defineConfig(() => ({
   server: {
     port: 1420,
     strictPort: true,
+    // Same-origin calls to /api are forwarded to the ASP.NET backend, so no CORS is needed.
+    // HTTPS target because the backend redirects HTTP; secure: false accepts its dev certificate.
+    proxy: {
+      "/api": {
+        target: "https://localhost:7232",
+        secure: false,
+      },
+    },
     host: host || false,
     hmr: host
       ? {
